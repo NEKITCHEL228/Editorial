@@ -15,7 +15,6 @@ public class JdbcArticleRepository implements ArticleRepository {
         this.connectionFactory = connectionFactory;
     }
 
-
     @Override
     public void addArticle(Article article) {
     }
