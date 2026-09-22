@@ -1,16 +1,16 @@
-Reqs: 
+## Reqs: 
 
--Java 21
+- Java 21
 
--Maven
+- Maven
 
--Docker
-
-
+- Docker
 
 
-.env example:
 
+
+## .env example:
+``` .env
 POSTGRES_DB=editorial
 
 POSTGRES_USER=editorial_app
@@ -18,6 +18,6 @@ POSTGRES_USER=editorial_app
 POSTGRES_PASSWORD=editorial
 
 POSTGRES_PORT=5433
+```
 
-
-Also edit database.properties to fit your .env file
+## Also edit database.properties to fit your .env file
