@@ -1,10 +1,18 @@
 package presentation;
 
 import data.local.database.DatabaseConfig;
+import data.local.database.DatabaseConnectionFactory;
 import data.local.database.DatabaseMigrator;
+import data.local.repository.JdbcArticleRepository;
 import domain.model.Article;
+import domain.repository.ArticleRepository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class ConsoleView implements View {
@@ -17,15 +25,27 @@ public class ConsoleView implements View {
     private static final int SORT_ARTICLES_COMMAND = 7;
     private static final int SEARCH_ARTICLES_COMMAND = 8;
     private static final int EXIT_COMMAND = 0;
+    private static final DateTimeFormatter SHORT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private static final DateTimeFormatter SHORT_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
+    private final ArticleRepository articleRepository;
     private final Scanner scanner = new Scanner(System.in);
+
+    public ConsoleView() {
+        this(new JdbcArticleRepository(new DatabaseConnectionFactory(new DatabaseConfig())));
+    }
+
+    public ConsoleView(ArticleRepository articleRepository) {
+        this.articleRepository = articleRepository;
+    }
 
     public static void main(String[] args) {
         DatabaseConfig config = new DatabaseConfig();
         DatabaseMigrator migrator = new DatabaseMigrator(config);
 
         migrator.migrate();
-        new ConsoleView().run();
+        ArticleRepository articleRepository = new JdbcArticleRepository(new DatabaseConnectionFactory(config));
+        new ConsoleView(articleRepository).run();
     }
 
     public void run() {
@@ -36,7 +56,7 @@ public class ConsoleView implements View {
             int command = getMenuChoice();
 
             switch (command) {
-                case SHOW_ARTICLES_COMMAND -> showArticles(List.of());
+                case SHOW_ARTICLES_COMMAND -> showArticlesFromRepository();
                 case ADD_ARTICLE_COMMAND -> addArticle();
                 case EDIT_ARTICLE_COMMAND -> editArticle();
                 case DELETE_ARTICLE_COMMAND -> deleteArticle();
@@ -127,43 +147,223 @@ public class ConsoleView implements View {
     }
 
     private void addArticle() {
-        getUserInput("Enter author ID: ");
-        getUserInput("Enter title: ");
-        getUserInput("Enter content: ");
-        getUserInput("Enter status (PENDING, MODERATING, REJECTED, PUBLISHED): ");
-        getUserInput("Enter published at: ");
-        showMessage("Add article is not implemented yet.");
+        Integer authorId = readPositiveInt("Enter author ID: ");
+        if (authorId == null) {
+            return;
+        }
+
+        String title = readRequiredInput("Enter title: ");
+        String content = readRequiredInput("Enter content: ");
+        Article.Status status = readStatus("Enter status (PENDING, MODERATING, REJECTED, PUBLISHED): ");
+        String publishedAt = readPublishedAt();
+
+        if (title == null || content == null || status == null) {
+            return;
+        }
+
+        Article article = new Article(0, authorId, title, content, status, publishedAt);
+        try {
+            articleRepository.addArticle(article);
+            showMessage("Article added successfully. ID: " + article.getId());
+        } catch (RuntimeException e) {
+            showError(getErrorMessage(e));
+        }
     }
 
     private void editArticle() {
-        getUserInput("Enter article ID: ");
-        getUserInput("Enter new title: ");
-        getUserInput("Enter new content: ");
-        getUserInput("Enter new status (PENDING, MODERATING, REJECTED, PUBLISHED): ");
-        showMessage("Edit article is not implemented yet.");
+        Integer articleId = readPositiveInt("Enter article ID: ");
+        if (articleId == null) {
+            return;
+        }
+
+        String title = readRequiredInput("Enter new title: ");
+        String content = readRequiredInput("Enter new content: ");
+        Article.Status status = readStatus("Enter new status (PENDING, MODERATING, REJECTED, PUBLISHED): ");
+
+        if (title == null || content == null || status == null) {
+            return;
+        }
+
+        Article article = new Article(articleId, articleId, title, content, status, null);
+        try {
+            articleRepository.editArticle(article);
+            showMessage("Article updated successfully.");
+        } catch (RuntimeException e) {
+            showError(getErrorMessage(e));
+        }
     }
 
     private void deleteArticle() {
-        getUserInput("Enter article ID: ");
-        showMessage("Delete article is not implemented yet.");
+        Integer articleId = readPositiveInt("Enter article ID: ");
+        if (articleId == null) {
+            return;
+        }
+
+        try {
+            articleRepository.deleteArticle(articleId);
+            showMessage("Article deleted successfully.");
+        } catch (RuntimeException e) {
+            showError(getErrorMessage(e));
+        }
     }
 
     private void getArticleById() {
-        getUserInput("Enter article ID: ");
-        showMessage("Get article by ID is not implemented yet.");
+        Integer articleId = readPositiveInt("Enter article ID: ");
+        if (articleId == null) {
+            return;
+        }
+
+        try {
+            Article article = articleRepository.getArticleById(articleId);
+            showArticle(article);
+        } catch (RuntimeException e) {
+            showError(getErrorMessage(e));
+        }
+    }
+
+    private void showArticlesFromRepository() {
+        showMessage("Showing all articles is not implemented in the repository yet.");
     }
 
     private void filterArticles() {
-        getUserInput("Enter filter criteria: ");
-        showMessage("Filter articles is not implemented yet.");
+        showMessage("Filter articles is not implemented in the repository yet.");
     }
 
     private void sortArticles() {
-        showMessage("Sort articles is not implemented yet.");
+        showMessage("Sort articles is not implemented in the repository yet.");
     }
 
     private void searchArticles() {
-        getUserInput("Enter search keyword: ");
-        showMessage("Search articles is not implemented yet.");
+        showMessage("Search articles is not implemented in the repository yet.");
+    }
+
+    private void showArticle(Article article) {
+        System.out.println("Article:");
+        System.out.printf("ID: %d%n", article.getId());
+        System.out.printf("Author ID: %d%n", article.getAuthorId());
+        System.out.printf("Title: %s%n", article.getTitle());
+        System.out.printf("Content: %s%n", article.getContent());
+        System.out.printf("Status: %s%n", article.getStatus());
+        System.out.printf("Published at: %s%n", article.getPublishedAt());
+    }
+
+    private Integer readPositiveInt(String prompt) {
+        while (true) {
+            Integer value = readInt(prompt);
+            if (value == null) {
+                return null;
+            }
+            if (value > 0) {
+                return value;
+            }
+            showError("ID must be a positive number.");
+        }
+    }
+
+    private Integer readInt(String prompt) {
+        while (true) {
+            String input = getUserInput(prompt);
+            if (input == null) {
+                return null;
+            }
+
+            try {
+                return Integer.parseInt(input.trim());
+            } catch (NumberFormatException e) {
+                showError("Please enter a valid integer.");
+            }
+        }
+    }
+
+    private String readRequiredInput(String prompt) {
+        while (true) {
+            String input = getUserInput(prompt);
+            if (input == null) {
+                return null;
+            }
+
+            String value = input.trim();
+            if (!value.isBlank()) {
+                return value;
+            }
+            showError("This field cannot be empty.");
+        }
+    }
+
+    private String readPublishedAt() {
+        while (true) {
+            String input = getUserInput("Enter published at (DD.MM.YYYY or ISO date/time): ");
+            if (input == null) {
+                return null;
+            }
+
+            String value = input.trim();
+            if (value.isBlank()) {
+                return null;
+            }
+
+            String normalized = normalizePublishedAt(value);
+            if (normalized != null) {
+                return normalized;
+            }
+
+            showError("Invalid date format. Use DD.MM.YYYY or ISO date/time.");
+        }
+    }
+
+    private String normalizePublishedAt(String value) {
+        try {
+            return LocalDate.parse(value, SHORT_DATE_FORMAT).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        } catch (DateTimeParseException ignored) {
+            // Try the remaining supported formats.
+        }
+
+        try {
+            return LocalDateTime.parse(value, SHORT_DATE_TIME_FORMAT)
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (DateTimeParseException ignored) {
+            // Try the remaining supported formats.
+        }
+
+        try {
+            return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE)
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE);
+        } catch (DateTimeParseException ignored) {
+            // Try the remaining supported format.
+        }
+
+        try {
+            return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (DateTimeParseException ignored) {
+            return null;
+        }
+    }
+
+    private Article.Status readStatus(String prompt) {
+        while (true) {
+            String input = getUserInput(prompt);
+            if (input == null) {
+                return null;
+            }
+
+            try {
+                return Article.Status.valueOf(input.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                showError("Invalid status. Available values: PENDING, MODERATING, REJECTED, PUBLISHED.");
+            }
+        }
+    }
+
+    private String getErrorMessage(RuntimeException exception) {
+        return exception.getMessage() == null || exception.getMessage().isBlank()
+                ? exception.getClass().getSimpleName()
+                : exception.getMessage();
     }
 }
+
+
+
+
+
+

@@ -19,7 +19,7 @@ public class Article {
             String publishedAt
     ) {
         this.id = id;
-        this.authorId = id;
+        this.authorId = authorId;
         this.title = title;
         this.content = content;
         this.status = status;
