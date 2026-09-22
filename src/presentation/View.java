@@ -5,6 +5,7 @@ import domain.model.Article;
 import java.util.List;
 
 public interface View {
+    void showStartOptions();
     void showArticles(List<Article> articles);
     void showMessage(String message);
     void showError(String error);

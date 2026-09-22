@@ -38,7 +38,8 @@ public class Presenter {
         this.editArticleUseCase = editArticleUseCase;
     }
 
-    public void onAddArticleClicked() {}
+    public void onAddArticleClicked(Article article) {
+    }
 
     public void onGetArticles() {}
 

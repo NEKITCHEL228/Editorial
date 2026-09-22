@@ -5,11 +5,24 @@ import domain.model.Article;
 import java.util.List;
 import java.util.Scanner;
 
+import data.local.database.DatabaseConfig;
+import data.local.database.DatabaseMigrator;
+import org.flywaydb.core.internal.database.base.Database;
+
 public class ConsoleView implements View {
     private final Scanner scanner = new Scanner(System.in);
 
-    static void main() {
-        System.out.println("hello world!");
+    public static void main(String[] args) {
+        DatabaseConfig config = new DatabaseConfig();
+        DatabaseMigrator migrator = new DatabaseMigrator(config);
+
+        migrator.migrate();
+    }
+
+
+    @Override
+    public void showStartOptions() {
+
     }
 
     @Override
