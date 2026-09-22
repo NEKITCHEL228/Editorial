@@ -5,7 +5,7 @@ import domain.repository.ArticleRepository;
 
 import java.util.List;
 
-public class ArticleRepositoryImpl implements ArticleRepository {
+public class JdbcArticleRepository implements ArticleRepository {
     @Override
     public void addArticle(Article article) {
 
