@@ -1,14 +1,23 @@
 package data.local.repository;
 
+import data.local.database.DatabaseConnectionFactory;
 import domain.model.Article;
 import domain.repository.ArticleRepository;
 
+import javax.xml.crypto.Data;
+import java.sql.SQLException;
 import java.util.List;
 
 public class JdbcArticleRepository implements ArticleRepository {
+    private final DatabaseConnectionFactory connectionFactory;
+
+    public JdbcArticleRepository(DatabaseConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
+
+
     @Override
     public void addArticle(Article article) {
-
     }
 
     @Override
