@@ -37,7 +37,7 @@ public class Application {
         UserValidator userValidator = new UserValidator();
         IdValidator idValidator = new IdValidator();
 
-        ConsoleView view = new ConsoleView();
+        ConsoleView view = new ConsoleView(idValidator, articleValidator, userValidator);
         Presenter presenter = new Presenter(
                 view,
                 new GetArticlesUseCase(),

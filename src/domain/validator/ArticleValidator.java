@@ -7,15 +7,9 @@ public class ArticleValidator {
         if (article == null) {
             throw new IllegalArgumentException("Article is required");
         }
-        if (article.getAuthorId() <= 0) {
-            throw new IllegalArgumentException("Author ID must be a positive number");
-        }
-        if (isBlank(article.getTitle())) {
-            throw new IllegalArgumentException("Title cannot be empty");
-        }
-        if (isBlank(article.getContent())) {
-            throw new IllegalArgumentException("Content cannot be empty");
-        }
+        validateAuthorId(article.getAuthorId());
+        validateTitle(article.getTitle());
+        validateContent(article.getContent());
         if (article.getStatus() == null) {
             throw new IllegalArgumentException("Status is required");
         }
@@ -24,11 +18,26 @@ public class ArticleValidator {
         }
     }
 
+    public void validateAuthorId(int authorId) {
+        if (authorId <= 0) {
+            throw new IllegalArgumentException("Author ID must be a positive number");
+        }
+    }
+
+    public void validateTitle(String title) {
+        if (isBlank(title)) {
+            throw new IllegalArgumentException("Title cannot be empty");
+        }
+    }
+
+    public void validateContent(String content) {
+        if (isBlank(content)) {
+            throw new IllegalArgumentException("Content cannot be empty");
+        }
+    }
+
     public void validateNew(Article article) {
         validate(article);
-        if (article.getStatus() != Article.Status.PENDING) {
-            throw new IllegalStateException("New article must have a PENDING status");
-        }
     }
 
     private static boolean isBlank(String value) {
