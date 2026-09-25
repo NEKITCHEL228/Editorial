@@ -19,6 +19,9 @@ import domain.usecase.GetArticlesUseCase;
 import domain.usecase.GetUserByIdUseCase;
 import domain.usecase.SearchArticleUseCase;
 import domain.usecase.SortArticlesUseCase;
+import domain.validator.ArticleValidator;
+import domain.validator.IdValidator;
+import domain.validator.UserValidator;
 import presentation.ConsoleView;
 import presentation.Presenter;
 
@@ -30,21 +33,25 @@ public class Application {
         ArticleRepository articleRepository = new JdbcArticleRepository(connectionFactory);
         UserRepository userRepository = new JdbcUserRepository(connectionFactory);
 
+        ArticleValidator articleValidator = new ArticleValidator();
+        UserValidator userValidator = new UserValidator();
+        IdValidator idValidator = new IdValidator();
+
         ConsoleView view = new ConsoleView();
         Presenter presenter = new Presenter(
                 view,
                 new GetArticlesUseCase(),
-                new AddArticleUseCase(articleRepository),
-                new EditArticleUseCase(articleRepository),
-                new GetArticleByIdUseCase(articleRepository),
-                new DeleteArticleUseCase(articleRepository),
+                new AddArticleUseCase(articleRepository, articleValidator),
+                new EditArticleUseCase(articleRepository, articleValidator, idValidator),
+                new GetArticleByIdUseCase(articleRepository, idValidator),
+                new DeleteArticleUseCase(articleRepository, idValidator),
                 new FilterArticlesUseCase(),
                 new SortArticlesUseCase(),
                 new SearchArticleUseCase(),
-                new AddUserUseCase(userRepository),
-                new EditUserUseCase(userRepository),
-                new DeleteUserUseCase(userRepository),
-                new GetUserByIdUseCase(userRepository)
+                new AddUserUseCase(userRepository, userValidator),
+                new EditUserUseCase(userRepository, userValidator, idValidator),
+                new DeleteUserUseCase(userRepository, idValidator),
+                new GetUserByIdUseCase(userRepository, idValidator)
         );
         view.setPresenter(presenter);
 

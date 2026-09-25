@@ -95,9 +95,9 @@ public class ConsoleView implements View {
     }
 
     private void addArticle() {
-        int authorId = getPositiveIntInput("Enter author ID:");
-        String title = getRequiredInput("Enter title:");
-        String content = getRequiredInput("Enter content:");
+        int authorId = getIntInput("Enter author ID:");
+        String title = getUserInput("Enter title:").trim();
+        String content = getUserInput("Enter content:").trim();
         String publishedAt = getUserInput("Enter published at (leave empty if unpublished):").trim();
 
         if (publishedAt.isEmpty()) {
@@ -105,28 +105,28 @@ public class ConsoleView implements View {
         }
 
         Article article = new Article(0, authorId, title, content, Article.Status.PENDING, publishedAt);
-        presenter.onAddArticle(article);
-
-        articles.add(article);
+        if (presenter.onAddArticle(article)) {
+            articles.add(article);
+        }
     }
 
     private void deleteArticle() {
-        int articleId = getPositiveIntInput("Enter article ID:");
+        int articleId = getIntInput("Enter article ID:");
 
         presenter.onDeleteArticle(articleId);
     }
 
     private void editArticle() {
-        int articleId = getPositiveIntInput("Enter article ID:");
-        String title = getRequiredInput("Enter new title:");
-        String content = getRequiredInput("Enter new content:");
+        int articleId = getIntInput("Enter article ID:");
+        String title = getUserInput("Enter new title:").trim();
+        String content = getUserInput("Enter new content:").trim();
         Article.Status status = getStatusInput("Enter new status:");
 
         presenter.onEditArticle(articleId, title, content, status);
     }
 
     private void getArticleById() {
-        int articleId = getPositiveIntInput("Enter article ID to find:");
+        int articleId = getIntInput("Enter article ID to find:");
 
         Article article = presenter.onGetArticleById(articleId);
 
@@ -134,9 +134,9 @@ public class ConsoleView implements View {
     }
 
     private void addUser() {
-        String username = getRequiredInput("Enter username:");
-        String email = getRequiredInput("Enter email:");
-        String passwordHash = getRequiredInput("Enter password hash:");
+        String username = getUserInput("Enter username:").trim();
+        String email = getUserInput("Enter email:").trim();
+        String passwordHash = getUserInput("Enter password hash:").trim();
         User.Role role = getRoleInput("Enter role:");
 
         User user = new User(0, username, email, passwordHash, role);
@@ -144,23 +144,23 @@ public class ConsoleView implements View {
     }
 
     private void editUser() {
-        int userId = getPositiveIntInput("Enter user ID:");
-        String username = getRequiredInput("Enter new username:");
-        String email = getRequiredInput("Enter new email:");
-        String passwordHash = getRequiredInput("Enter new password hash:");
+        int userId = getIntInput("Enter user ID:");
+        String username = getUserInput("Enter new username:").trim();
+        String email = getUserInput("Enter new email:").trim();
+        String passwordHash = getUserInput("Enter new password hash:").trim();
         User.Role role = getRoleInput("Enter new role:");
 
         presenter.onEditUser(userId, username, email, passwordHash, role);
     }
 
     private void deleteUser() {
-        int userId = getPositiveIntInput("Enter user ID:");
+        int userId = getIntInput("Enter user ID:");
 
         presenter.onDeleteUser(userId);
     }
 
     private void getUserById() {
-        int userId = getPositiveIntInput("Enter user ID to find:");
+        int userId = getIntInput("Enter user ID to find:");
         User user = presenter.onGetUserById(userId);
 
         showUser(user);
@@ -221,18 +221,6 @@ public class ConsoleView implements View {
         return getIntInput("Enter command:");
     }
 
-    private int getPositiveIntInput(String prompt) {
-        while (true) {
-            int value = getIntInput(prompt);
-
-            if (value > 0) {
-                return value;
-            }
-
-            showError("Enter a positive number");
-        }
-    }
-
     private int getIntInput(String prompt) {
         while (true) {
             String input = getUserInput(prompt).trim();
@@ -242,18 +230,6 @@ public class ConsoleView implements View {
             } catch (NumberFormatException e) {
                 showError("Enter a valid number");
             }
-        }
-    }
-
-    private String getRequiredInput(String prompt) {
-        while (true) {
-            String input = getUserInput(prompt).trim();
-
-            if (!input.isEmpty()) {
-                return input;
-            }
-
-            showError("Value cannot be empty");
         }
     }
 
@@ -271,12 +247,18 @@ public class ConsoleView implements View {
 
     private User.Role getRoleInput(String prompt) {
         while (true) {
-            String input = getUserInput(prompt).trim().toUpperCase(Locale.ROOT);
+            int num = 1;
+            for (User.Role item : User.Role.values()){
+                System.out.println(num + ". " + item);
+                num += 1;
+            }
+
+            int input = getIntInput(prompt);
 
             try {
-                return User.Role.valueOf(input);
-            } catch (IllegalArgumentException e) {
-                showError("Available roles: ADMIN, EDITOR, AUTHOR");
+                return User.Role.values()[input - 1];
+            } catch (ArrayIndexOutOfBoundsException e){
+                showError("Value out of bounds");
             }
         }
     }

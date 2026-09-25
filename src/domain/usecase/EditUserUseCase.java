@@ -2,12 +2,22 @@ package domain.usecase;
 
 import domain.model.User;
 import domain.repository.UserRepository;
+import domain.validator.IdValidator;
+import domain.validator.UserValidator;
 
 public class EditUserUseCase {
     private final UserRepository userRepository;
+    private final UserValidator userValidator;
+    private final IdValidator idValidator;
 
-    public EditUserUseCase(UserRepository userRepository) {
+    public EditUserUseCase(
+            UserRepository userRepository,
+            UserValidator userValidator,
+            IdValidator idValidator
+    ) {
         this.userRepository = userRepository;
+        this.userValidator = userValidator;
+        this.idValidator = idValidator;
     }
 
     public void execute(
@@ -17,6 +27,8 @@ public class EditUserUseCase {
             String passwordHash,
             User.Role role
     ) {
+        idValidator.validate(userId, "User ID");
+
         User user = userRepository.getUserById(userId);
 
         user.setUsername(username);
@@ -24,6 +36,7 @@ public class EditUserUseCase {
         user.setPasswordHash(passwordHash);
         user.setRole(role);
 
+        userValidator.validate(user);
         userRepository.editUser(user);
     }
 }
