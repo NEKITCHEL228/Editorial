@@ -1,6 +1,7 @@
 package presentation;
 
 import domain.model.Article;
+import domain.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,10 @@ public class ConsoleView implements View {
     private static final int FILTER_ARTICLES_COMMAND = 6;
     private static final int SORT_ARTICLES_COMMAND = 7;
     private static final int SEARCH_ARTICLES_COMMAND = 8;
+    private static final int ADD_USER_COMMAND = 9;
+    private static final int EDIT_USER_COMMAND = 10;
+    private static final int DELETE_USER_COMMAND = 11;
+    private static final int GET_USER_BY_ID_COMMAND = 12;
     private static final int EXIT_COMMAND = 0;
 
     private List<Article> articles = new ArrayList<>();
@@ -45,6 +50,10 @@ public class ConsoleView implements View {
                     case FILTER_ARTICLES_COMMAND -> presenter.onFilterArticles();
                     case SORT_ARTICLES_COMMAND -> presenter.onSortArticles();
                     case SEARCH_ARTICLES_COMMAND -> presenter.onSearchArticle();
+                    case ADD_USER_COMMAND -> addUser();
+                    case EDIT_USER_COMMAND -> editUser();
+                    case DELETE_USER_COMMAND -> deleteUser();
+                    case GET_USER_BY_ID_COMMAND -> getUserById();
                     case EXIT_COMMAND -> {
                         showMessage("Exiting the application");
                         isRunning = false;
@@ -57,7 +66,8 @@ public class ConsoleView implements View {
         }
     }
 
-    private void showArticle(Article article) {
+    @Override
+    public void showArticle(Article article) {
         if (article == null) {
             return;
         }
@@ -69,6 +79,19 @@ public class ConsoleView implements View {
         System.out.println("Content: " + article.getContent());
         System.out.println("Status: " + article.getStatus());
         System.out.println("Published at: " + article.getPublishedAt());
+    }
+
+    @Override
+    public void showUser(User user) {
+        if (user == null) {
+            return;
+        }
+
+        System.out.println();
+        System.out.println("ID: " + user.getId());
+        System.out.println("Username: " + user.getUsername());
+        System.out.println("Email: " + user.getEmail());
+        System.out.println("Role: " + user.getRole());
     }
 
     private void addArticle() {
@@ -110,6 +133,39 @@ public class ConsoleView implements View {
         showArticle(article);
     }
 
+    private void addUser() {
+        String username = getRequiredInput("Enter username:");
+        String email = getRequiredInput("Enter email:");
+        String passwordHash = getRequiredInput("Enter password hash:");
+        User.Role role = getRoleInput("Enter role:");
+
+        User user = new User(0, username, email, passwordHash, role);
+        presenter.onAddUser(user);
+    }
+
+    private void editUser() {
+        int userId = getPositiveIntInput("Enter user ID:");
+        String username = getRequiredInput("Enter new username:");
+        String email = getRequiredInput("Enter new email:");
+        String passwordHash = getRequiredInput("Enter new password hash:");
+        User.Role role = getRoleInput("Enter new role:");
+
+        presenter.onEditUser(userId, username, email, passwordHash, role);
+    }
+
+    private void deleteUser() {
+        int userId = getPositiveIntInput("Enter user ID:");
+
+        presenter.onDeleteUser(userId);
+    }
+
+    private void getUserById() {
+        int userId = getPositiveIntInput("Enter user ID to find:");
+        User user = presenter.onGetUserById(userId);
+
+        showUser(user);
+    }
+
     @Override
     public void showStartOptions() {
         System.out.println("-------------------------");
@@ -121,6 +177,10 @@ public class ConsoleView implements View {
         System.out.println("6. Filter articles");
         System.out.println("7. Sort articles");
         System.out.println("8. Search articles");
+        System.out.println("9. Add user");
+        System.out.println("10. Edit user");
+        System.out.println("11. Delete user");
+        System.out.println("12. Get user by ID");
         System.out.println("0. Exit");
         System.out.println("-------------------------");
     }
@@ -205,6 +265,18 @@ public class ConsoleView implements View {
                 return Article.Status.valueOf(input);
             } catch (IllegalArgumentException e) {
                 showError("Available statuses: PENDING, MODERATING, REJECTED, PUBLISHED");
+            }
+        }
+    }
+
+    private User.Role getRoleInput(String prompt) {
+        while (true) {
+            String input = getUserInput(prompt).trim().toUpperCase(Locale.ROOT);
+
+            try {
+                return User.Role.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                showError("Available roles: ADMIN, EDITOR, AUTHOR");
             }
         }
     }

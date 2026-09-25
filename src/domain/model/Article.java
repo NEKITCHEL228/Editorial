@@ -10,14 +10,7 @@ public class Article {
     private String publishedAt;
 
 
-    public Article(
-            int id,
-            int authorId,
-            String title,
-            String content,
-            Status status,
-            String publishedAt
-    ) {
+    public Article(int id, int authorId, String title, String content, Status status, String publishedAt) {
         this.id = id;
         this.authorId = authorId;
         this.title = title;
@@ -57,6 +50,7 @@ public class Article {
     public void setTitle(String title) {
         this.title = title;
     }
+
     public void setContent(String content) {
         this.content = content;
     }
@@ -70,10 +64,7 @@ public class Article {
     }
 
     public enum Status {
-        PENDING,
-        MODERATING,
-        REJECTED,
-        PUBLISHED
+        PENDING, MODERATING, REJECTED, PUBLISHED
     }
 }
 

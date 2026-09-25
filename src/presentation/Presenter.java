@@ -1,6 +1,7 @@
 package presentation;
 
 import domain.model.Article;
+import domain.model.User;
 import domain.usecase.*;
 
 public class Presenter {
@@ -13,6 +14,10 @@ public class Presenter {
     private final EditArticleUseCase editArticleUseCase;
     private final SortArticlesUseCase sortArticlesUseCase;
     private final SearchArticleUseCase searchArticleUseCase;
+    private final AddUserUseCase addUserUseCase;
+    private final EditUserUseCase editUserUseCase;
+    private final DeleteUserUseCase deleteUserUseCase;
+    private final GetUserByIdUseCase getUserByIdUseCase;
 
 
     public Presenter(
@@ -24,7 +29,11 @@ public class Presenter {
             DeleteArticleUseCase deleteArticleUseCase,
             FilterArticlesUseCase filterArticlesUseCase,
             SortArticlesUseCase sortArticlesUseCase,
-            SearchArticleUseCase searchArticleUseCase
+            SearchArticleUseCase searchArticleUseCase,
+            AddUserUseCase addUserUseCase,
+            EditUserUseCase editUserUseCase,
+            DeleteUserUseCase deleteUserUseCase,
+            GetUserByIdUseCase getUserByIdUseCase
 
     ) {
         this.view = view;
@@ -36,6 +45,10 @@ public class Presenter {
         this.sortArticlesUseCase = sortArticlesUseCase;
         this.searchArticleUseCase = searchArticleUseCase;
         this.editArticleUseCase = editArticleUseCase;
+        this.addUserUseCase = addUserUseCase;
+        this.editUserUseCase = editUserUseCase;
+        this.deleteUserUseCase = deleteUserUseCase;
+        this.getUserByIdUseCase = getUserByIdUseCase;
     }
 
     public void onAddArticle(Article article) {
@@ -47,7 +60,8 @@ public class Presenter {
         }
     }
 
-    public void onGetArticles() {}
+    public void onGetArticles() {
+    }
 
     public void onDeleteArticle(int articleId) {
         try {
@@ -69,11 +83,14 @@ public class Presenter {
         return returnArticle;
     }
 
-    public void onFilterArticles() {}
+    public void onFilterArticles() {
+    }
 
-    public void onSortArticles() {}
+    public void onSortArticles() {
+    }
 
-    public void onSearchArticle() {}
+    public void onSearchArticle() {
+    }
 
     public void onEditArticle(int articleId, String title, String content, Article.Status status) {
         try {
@@ -81,6 +98,51 @@ public class Presenter {
         } catch (IllegalStateException | IllegalArgumentException e) {
             view.showError(e.getMessage());
         }
+    }
+
+    public void onAddUser(User user) {
+        try {
+            addUserUseCase.execute(user);
+            view.showMessage("User added");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            view.showError(e.getMessage());
+        }
+    }
+
+    public void onEditUser(
+            int userId,
+            String username,
+            String email,
+            String passwordHash,
+            User.Role role
+    ) {
+        try {
+            editUserUseCase.execute(userId, username, email, passwordHash, role);
+            view.showMessage("User edited");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            view.showError(e.getMessage());
+        }
+    }
+
+    public void onDeleteUser(int userId) {
+        try {
+            deleteUserUseCase.execute(userId);
+            view.showMessage("User deleted");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            view.showError(e.getMessage());
+        }
+    }
+
+    public User onGetUserById(int userId) {
+        User returnUser = null;
+
+        try {
+            returnUser = getUserByIdUseCase.execute(userId);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            view.showError(e.getMessage());
+        }
+
+        return returnUser;
     }
 
 }

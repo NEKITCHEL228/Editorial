@@ -15,16 +15,49 @@ public class User {
         this.role = role;
     }
 
-    public int getId() {return id;}
-    public String getUsername() {return username;}
-    public String getEmail() {return email;}
-    public String getPasswordhash() {return passwordHash;}
-    public Role getRole() {return role;}
+    public int getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
 
     public enum Role {
-        ADMIN,
-        EDITOR,
-        AUTHOR
+        ADMIN, EDITOR, AUTHOR
     }
 }
 
