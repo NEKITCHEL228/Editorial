@@ -66,7 +66,8 @@ public class ConsoleView implements View {
         }
     }
 
-    private void showArticle(Article article) {
+    @Override
+    public void showArticle(Article article) {
         if (article == null) {
             return;
         }
@@ -80,7 +81,8 @@ public class ConsoleView implements View {
         System.out.println("Published at: " + article.getPublishedAt());
     }
 
-    private void showUser(User user) {
+    @Override
+    public void showUser(User user) {
         if (user == null) {
             return;
         }
@@ -148,8 +150,7 @@ public class ConsoleView implements View {
         String passwordHash = getRequiredInput("Enter new password hash:");
         User.Role role = getRoleInput("Enter new role:");
 
-        User user = new User(userId, username, email, passwordHash, role);
-        presenter.onEditUser(user);
+        presenter.onEditUser(userId, username, email, passwordHash, role);
     }
 
     private void deleteUser() {

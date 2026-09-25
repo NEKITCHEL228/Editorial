@@ -4,7 +4,9 @@ import data.local.database.DatabaseConfig;
 import data.local.database.DatabaseConnectionFactory;
 import data.local.database.DatabaseMigrator;
 import data.local.repository.JdbcArticleRepository;
+import data.local.repository.JdbcUserRepository;
 import domain.repository.ArticleRepository;
+import domain.repository.UserRepository;
 import domain.usecase.AddArticleUseCase;
 import domain.usecase.AddUserUseCase;
 import domain.usecase.DeleteArticleUseCase;
@@ -26,6 +28,7 @@ public class Application {
         DatabaseMigrator migrator = new DatabaseMigrator(config);
         DatabaseConnectionFactory connectionFactory = new DatabaseConnectionFactory(config);
         ArticleRepository articleRepository = new JdbcArticleRepository(connectionFactory);
+        UserRepository userRepository = new JdbcUserRepository(connectionFactory);
 
         ConsoleView view = new ConsoleView();
         Presenter presenter = new Presenter(
@@ -38,10 +41,10 @@ public class Application {
                 new FilterArticlesUseCase(),
                 new SortArticlesUseCase(),
                 new SearchArticleUseCase(),
-                new AddUserUseCase(),
-                new EditUserUseCase(),
-                new DeleteUserUseCase(),
-                new GetUserByIdUseCase()
+                new AddUserUseCase(userRepository),
+                new EditUserUseCase(userRepository),
+                new DeleteUserUseCase(userRepository),
+                new GetUserByIdUseCase(userRepository)
         );
         view.setPresenter(presenter);
 

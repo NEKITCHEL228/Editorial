@@ -1,5 +1,7 @@
 package data.local.database;
+
 import org.flywaydb.core.Flyway;
+
 public class DatabaseMigrator {
     private final DatabaseConfig databaseConfig;
 

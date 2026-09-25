@@ -1,6 +1,5 @@
 package data.local.repository;
 
-import com.fasterxml.jackson.databind.ext.SqlBlobSerializer;
 import domain.model.User;
 import domain.repository.UserRepository;
 import data.local.database.DatabaseConnectionFactory;
