@@ -51,12 +51,14 @@ public class Presenter {
         this.getUserByIdUseCase = getUserByIdUseCase;
     }
 
-    public void onAddArticle(Article article) {
+    public boolean onAddArticle(Article article) {
         try {
             addArticleUseCase.execute(article);
             view.showMessage("Article added");
+            return true;
         } catch (IllegalArgumentException | IllegalStateException e) {
             view.showError(e.getMessage());
+            return false;
         }
     }
 

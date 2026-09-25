@@ -2,13 +2,12 @@ package domain.validator;
 
 import domain.model.User;
 
-public class UserValidator implements Validator<User> {
+public class UserValidator {
     private static final int USERNAME_MIN_LENGTH = 3;
     private static final int USERNAME_MAX_LENGTH = 100;
     private static final int EMAIL_MAX_LENGTH = 255;
     private static final String EMAIL_PATTERN = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$";
 
-    @Override
     public void validate(User user) {
         if (user == null) {
             throw new IllegalArgumentException("User is required");

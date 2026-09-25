@@ -2,8 +2,7 @@ package domain.validator;
 
 import domain.model.Article;
 
-public class ArticleValidator implements Validator<Article> {
-    @Override
+public class ArticleValidator {
     public void validate(Article article) {
         if (article == null) {
             throw new IllegalArgumentException("Article is required");
