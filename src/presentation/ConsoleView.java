@@ -271,12 +271,18 @@ public class ConsoleView implements View {
 
     private User.Role getRoleInput(String prompt) {
         while (true) {
-            String input = getUserInput(prompt).trim().toUpperCase(Locale.ROOT);
+            int num = 1;
+            for (User.Role item : User.Role.values()){
+                System.out.println(String.format("%d. %s", num, item));
+                num += 1;
+            }
+
+            int input = getIntInput(prompt);
 
             try {
-                return User.Role.valueOf(input);
-            } catch (IllegalArgumentException e) {
-                showError("Available roles: ADMIN, EDITOR, AUTHOR");
+                return User.Role.values()[input - 1];
+            } catch (ArrayIndexOutOfBoundsException e){
+                showError("Value out of bounds");
             }
         }
     }

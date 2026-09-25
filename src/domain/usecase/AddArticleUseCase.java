@@ -2,17 +2,19 @@ package domain.usecase;
 
 import domain.model.Article;
 import domain.repository.ArticleRepository;
+import domain.validator.ArticleValidator;
 
 public class AddArticleUseCase {
     private final ArticleRepository repository;
+    private final ArticleValidator articleValidator;
 
-    public AddArticleUseCase(ArticleRepository repository) {
+    public AddArticleUseCase(ArticleRepository repository, ArticleValidator articleValidator) {
         this.repository = repository;
+        this.articleValidator = articleValidator;
     }
 
     public void execute(Article article) {
-        if (article == null) throw new IllegalArgumentException("No such article");
-        if (article.getStatus() != Article.Status.PENDING) throw new IllegalStateException("New article must have a PENDING status");
+        articleValidator.validateNew(article);
         repository.addArticle(article);
     }
 }
