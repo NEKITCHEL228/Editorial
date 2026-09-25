@@ -36,10 +36,6 @@ public class ArticleValidator {
         }
     }
 
-    public void validateNew(Article article) {
-        validate(article);
-    }
-
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
