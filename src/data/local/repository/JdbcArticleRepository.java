@@ -20,7 +20,7 @@ public class JdbcArticleRepository implements ArticleRepository {
     public void addArticle(Article article) {
         String sql = """
                         INSERT INTO articles (author_id, status_id, title, content, published_at)
-                        VALUES (?, (SELECT id FROM article_statuses WHERE code = ?), ?, ?, ?)
+                        VALUES (?, (SELECT id FROM article_statuses WHERE code = ?), ?, ?, ?::timestamptz)
                         RETURNING id
                 """;
 
@@ -40,7 +40,7 @@ public class JdbcArticleRepository implements ArticleRepository {
                 article.setId(result.getInt("id"));
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Couldn't add article");
+            throw new IllegalStateException("Couldn't add article", e);
         }
     }
 
