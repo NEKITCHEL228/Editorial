@@ -38,14 +38,36 @@ public class Presenter {
         this.editArticleUseCase = editArticleUseCase;
     }
 
-    public void onAddArticleClicked(Article article) {
+    public void onAddArticle(Article article) {
+        try {
+            addArticleUseCase.execute(article);
+            view.showMessage("Article added");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            view.showError(e.getMessage());
+        }
     }
 
     public void onGetArticles() {}
 
-    public void onDeleteArticle() {}
+    public void onDeleteArticle(int articleId) {
+        try {
+            deleteArticleUseCase.execute(articleId);
+            view.showMessage("Article deleted");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            view.showError(e.getMessage());
+        }
+    }
 
-    public void onGetArticleById() {}
+    public Article onGetArticleById(int articleId) {
+        Article returnArticle = null;
+        try {
+            returnArticle = getArticleByIdUseCase.execute(articleId);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            view.showError(e.getMessage());
+        }
+
+        return returnArticle;
+    }
 
     public void onFilterArticles() {}
 
@@ -53,6 +75,12 @@ public class Presenter {
 
     public void onSearchArticle() {}
 
-    public void onEditArticle() {}
+    public void onEditArticle(int articleId, String title, String content, Article.Status status) {
+        try {
+            editArticleUseCase.execute(articleId, title, content, status);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            view.showError(e.getMessage());
+        }
+    }
 
 }

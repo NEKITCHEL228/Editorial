@@ -1,16 +1,8 @@
 package presentation;
 
-import data.local.database.DatabaseConfig;
-import data.local.database.DatabaseConnectionFactory;
-import data.local.database.DatabaseMigrator;
-import data.local.repository.JdbcArticleRepository;
 import domain.model.Article;
-import domain.repository.ArticleRepository;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
@@ -25,27 +17,14 @@ public class ConsoleView implements View {
     private static final int SORT_ARTICLES_COMMAND = 7;
     private static final int SEARCH_ARTICLES_COMMAND = 8;
     private static final int EXIT_COMMAND = 0;
-    private static final DateTimeFormatter SHORT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    private static final DateTimeFormatter SHORT_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
-    private final ArticleRepository articleRepository;
+    private List<Article> articles = new ArrayList<>();
+
+    private Presenter presenter;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ConsoleView() {
-        this(new JdbcArticleRepository(new DatabaseConnectionFactory(new DatabaseConfig())));
-    }
-
-    public ConsoleView(ArticleRepository articleRepository) {
-        this.articleRepository = articleRepository;
-    }
-
-    public static void main(String[] args) {
-        DatabaseConfig config = new DatabaseConfig();
-        DatabaseMigrator migrator = new DatabaseMigrator(config);
-
-        migrator.migrate();
-        ArticleRepository articleRepository = new JdbcArticleRepository(new DatabaseConnectionFactory(config));
-        new ConsoleView(articleRepository).run();
+    public void setPresenter(Presenter presenter) {
+        this.presenter = presenter;
     }
 
     public void run() {
@@ -53,30 +32,87 @@ public class ConsoleView implements View {
 
         while (isRunning) {
             showStartOptions();
-            int command = getMenuChoice();
 
-            switch (command) {
-                case SHOW_ARTICLES_COMMAND -> showArticlesFromRepository();
-                case ADD_ARTICLE_COMMAND -> addArticle();
-                case EDIT_ARTICLE_COMMAND -> editArticle();
-                case DELETE_ARTICLE_COMMAND -> deleteArticle();
-                case GET_ARTICLE_BY_ID_COMMAND -> getArticleById();
-                case FILTER_ARTICLES_COMMAND -> filterArticles();
-                case SORT_ARTICLES_COMMAND -> sortArticles();
-                case SEARCH_ARTICLES_COMMAND -> searchArticles();
-                case EXIT_COMMAND -> {
-                    showMessage("Exiting the application.");
-                    isRunning = false;
+            try {
+                int command = getMenuChoice();
+
+                switch (command) {
+                    case SHOW_ARTICLES_COMMAND -> showArticles();
+                    case ADD_ARTICLE_COMMAND -> addArticle();
+                    case EDIT_ARTICLE_COMMAND -> editArticle();
+                    case DELETE_ARTICLE_COMMAND -> deleteArticle();
+                    case GET_ARTICLE_BY_ID_COMMAND -> getArticleById();
+                    case FILTER_ARTICLES_COMMAND -> presenter.onFilterArticles();
+                    case SORT_ARTICLES_COMMAND -> presenter.onSortArticles();
+                    case SEARCH_ARTICLES_COMMAND -> presenter.onSearchArticle();
+                    case EXIT_COMMAND -> {
+                        showMessage("Exiting the application");
+                        isRunning = false;
+                    }
+                    default -> showError("Unknown command");
                 }
-                default -> showError("Unknown command. Please select a command from the menu.");
+            } catch (RuntimeException e) {
+                showError(e.getMessage());
             }
         }
     }
 
+    private void showArticle(Article article) {
+        if (article == null) {
+            return;
+        }
+
+        System.out.println();
+        System.out.println("ID: " + article.getId());
+        System.out.println("Author ID: " + article.getAuthorId());
+        System.out.println("Title: " + article.getTitle());
+        System.out.println("Content: " + article.getContent());
+        System.out.println("Status: " + article.getStatus());
+        System.out.println("Published at: " + article.getPublishedAt());
+    }
+
+    private void addArticle() {
+        int authorId = getPositiveIntInput("Enter author ID:");
+        String title = getRequiredInput("Enter title:");
+        String content = getRequiredInput("Enter content:");
+        String publishedAt = getUserInput("Enter published at (leave empty if unpublished):").trim();
+
+        if (publishedAt.isEmpty()) {
+            publishedAt = null;
+        }
+
+        Article article = new Article(0, authorId, title, content, Article.Status.PENDING, publishedAt);
+        presenter.onAddArticle(article);
+
+        articles.add(article);
+    }
+
+    private void deleteArticle() {
+        int articleId = getPositiveIntInput("Enter article ID:");
+
+        presenter.onDeleteArticle(articleId);
+    }
+
+    private void editArticle() {
+        int articleId = getPositiveIntInput("Enter article ID:");
+        String title = getRequiredInput("Enter new title:");
+        String content = getRequiredInput("Enter new content:");
+        Article.Status status = getStatusInput("Enter new status:");
+
+        presenter.onEditArticle(articleId, title, content, status);
+    }
+
+    private void getArticleById() {
+        int articleId = getPositiveIntInput("Enter article ID to find:");
+
+        Article article = presenter.onGetArticleById(articleId);
+
+        showArticle(article);
+    }
+
     @Override
     public void showStartOptions() {
-        System.out.println();
-        System.out.println("=== Editorial Console ===");
+        System.out.println("-------------------------");
         System.out.println("1. Show all articles");
         System.out.println("2. Add article");
         System.out.println("3. Edit article");
@@ -86,284 +122,91 @@ public class ConsoleView implements View {
         System.out.println("7. Sort articles");
         System.out.println("8. Search articles");
         System.out.println("0. Exit");
-        System.out.println();
+        System.out.println("-------------------------");
     }
 
     @Override
-    public void showArticles(List<Article> articles) {
+    public void showArticles() {
         if (articles == null || articles.isEmpty()) {
-            showMessage("No articles found.");
+            showMessage("No articles found");
             return;
         }
 
-        System.out.println("Articles:");
         for (Article article : articles) {
-            System.out.printf(
-                    "%d. %s (author ID: %d, status: %s, published at: %s)%n",
-                    article.getId(),
-                    article.getTitle(),
-                    article.getAuthorId(),
-                    article.getStatus(),
-                    article.getPublishedAt()
-            );
+            showArticle(article);
         }
     }
 
     @Override
     public void showMessage(String message) {
+        System.out.println();
         System.out.println(message);
     }
 
     @Override
     public void showError(String error) {
-        System.err.println("Error: " + error);
+        System.out.println("Error: " + error);
     }
 
     @Override
     public String getUserInput(String prompt) {
-        System.out.print(prompt);
+        System.out.println(prompt);
         System.out.flush();
-
-        if (!scanner.hasNextLine()) {
-            return null;
-        }
 
         return scanner.nextLine();
     }
 
     @Override
     public int getMenuChoice() {
-        String input = getUserInput("Enter command: ");
-        if (input == null) {
-            return EXIT_COMMAND;
-        }
-
-        try {
-            return Integer.parseInt(input.trim());
-        } catch (NumberFormatException e) {
-            showError("Command must be a number.");
-            return -1;
-        }
+        return getIntInput("Enter command:");
     }
 
-    private void addArticle() {
-        Integer authorId = readPositiveInt("Enter author ID: ");
-        if (authorId == null) {
-            return;
-        }
-
-        String title = readRequiredInput("Enter title: ");
-        String content = readRequiredInput("Enter content: ");
-        Article.Status status = readStatus("Enter status (PENDING, MODERATING, REJECTED, PUBLISHED): ");
-        String publishedAt = readPublishedAt();
-
-        if (title == null || content == null || status == null) {
-            return;
-        }
-
-        Article article = new Article(0, authorId, title, content, status, publishedAt);
-        try {
-            articleRepository.addArticle(article);
-            showMessage("Article added successfully. ID: " + article.getId());
-        } catch (RuntimeException e) {
-            showError(getErrorMessage(e));
-        }
-    }
-
-    private void editArticle() {
-        Integer articleId = readPositiveInt("Enter article ID: ");
-        if (articleId == null) {
-            return;
-        }
-
-        String title = readRequiredInput("Enter new title: ");
-        String content = readRequiredInput("Enter new content: ");
-        Article.Status status = readStatus("Enter new status (PENDING, MODERATING, REJECTED, PUBLISHED): ");
-
-        if (title == null || content == null || status == null) {
-            return;
-        }
-
-        Article article = new Article(articleId, articleId, title, content, status, null);
-        try {
-            articleRepository.editArticle(article);
-            showMessage("Article updated successfully.");
-        } catch (RuntimeException e) {
-            showError(getErrorMessage(e));
-        }
-    }
-
-    private void deleteArticle() {
-        Integer articleId = readPositiveInt("Enter article ID: ");
-        if (articleId == null) {
-            return;
-        }
-
-        try {
-            articleRepository.deleteArticle(articleId);
-            showMessage("Article deleted successfully.");
-        } catch (RuntimeException e) {
-            showError(getErrorMessage(e));
-        }
-    }
-
-    private void getArticleById() {
-        Integer articleId = readPositiveInt("Enter article ID: ");
-        if (articleId == null) {
-            return;
-        }
-
-        try {
-            Article article = articleRepository.getArticleById(articleId);
-            showArticle(article);
-        } catch (RuntimeException e) {
-            showError(getErrorMessage(e));
-        }
-    }
-
-    private void showArticlesFromRepository() {
-        showMessage("Showing all articles is not implemented in the repository yet.");
-    }
-
-    private void filterArticles() {
-        showMessage("Filter articles is not implemented in the repository yet.");
-    }
-
-    private void sortArticles() {
-        showMessage("Sort articles is not implemented in the repository yet.");
-    }
-
-    private void searchArticles() {
-        showMessage("Search articles is not implemented in the repository yet.");
-    }
-
-    private void showArticle(Article article) {
-        System.out.println("Article:");
-        System.out.printf("ID: %d%n", article.getId());
-        System.out.printf("Author ID: %d%n", article.getAuthorId());
-        System.out.printf("Title: %s%n", article.getTitle());
-        System.out.printf("Content: %s%n", article.getContent());
-        System.out.printf("Status: %s%n", article.getStatus());
-        System.out.printf("Published at: %s%n", article.getPublishedAt());
-    }
-
-    private Integer readPositiveInt(String prompt) {
+    private int getPositiveIntInput(String prompt) {
         while (true) {
-            Integer value = readInt(prompt);
-            if (value == null) {
-                return null;
-            }
+            int value = getIntInput(prompt);
+
             if (value > 0) {
                 return value;
             }
-            showError("ID must be a positive number.");
+
+            showError("Enter a positive number");
         }
     }
 
-    private Integer readInt(String prompt) {
+    private int getIntInput(String prompt) {
         while (true) {
-            String input = getUserInput(prompt);
-            if (input == null) {
-                return null;
-            }
+            String input = getUserInput(prompt).trim();
 
             try {
-                return Integer.parseInt(input.trim());
+                return Integer.parseInt(input);
             } catch (NumberFormatException e) {
-                showError("Please enter a valid integer.");
+                showError("Enter a valid number");
             }
         }
     }
 
-    private String readRequiredInput(String prompt) {
+    private String getRequiredInput(String prompt) {
         while (true) {
-            String input = getUserInput(prompt);
-            if (input == null) {
-                return null;
+            String input = getUserInput(prompt).trim();
+
+            if (!input.isEmpty()) {
+                return input;
             }
 
-            String value = input.trim();
-            if (!value.isBlank()) {
-                return value;
-            }
-            showError("This field cannot be empty.");
+            showError("Value cannot be empty");
         }
     }
 
-    private String readPublishedAt() {
+    private Article.Status getStatusInput(String prompt) {
         while (true) {
-            String input = getUserInput("Enter published at (DD.MM.YYYY or ISO date/time): ");
-            if (input == null) {
-                return null;
-            }
-
-            String value = input.trim();
-            if (value.isBlank()) {
-                return null;
-            }
-
-            String normalized = normalizePublishedAt(value);
-            if (normalized != null) {
-                return normalized;
-            }
-
-            showError("Invalid date format. Use DD.MM.YYYY or ISO date/time.");
-        }
-    }
-
-    private String normalizePublishedAt(String value) {
-        try {
-            return LocalDate.parse(value, SHORT_DATE_FORMAT).format(DateTimeFormatter.ISO_LOCAL_DATE);
-        } catch (DateTimeParseException ignored) {
-            // Try the remaining supported formats.
-        }
-
-        try {
-            return LocalDateTime.parse(value, SHORT_DATE_TIME_FORMAT)
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        } catch (DateTimeParseException ignored) {
-            // Try the remaining supported formats.
-        }
-
-        try {
-            return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE)
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE);
-        } catch (DateTimeParseException ignored) {
-            // Try the remaining supported format.
-        }
-
-        try {
-            return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        } catch (DateTimeParseException ignored) {
-            return null;
-        }
-    }
-
-    private Article.Status readStatus(String prompt) {
-        while (true) {
-            String input = getUserInput(prompt);
-            if (input == null) {
-                return null;
-            }
+            String input = getUserInput(prompt).trim().toUpperCase(Locale.ROOT);
 
             try {
-                return Article.Status.valueOf(input.trim().toUpperCase(Locale.ROOT));
+                return Article.Status.valueOf(input);
             } catch (IllegalArgumentException e) {
-                showError("Invalid status. Available values: PENDING, MODERATING, REJECTED, PUBLISHED.");
+                showError("Available statuses: PENDING, MODERATING, REJECTED, PUBLISHED");
             }
         }
     }
 
-    private String getErrorMessage(RuntimeException exception) {
-        return exception.getMessage() == null || exception.getMessage().isBlank()
-                ? exception.getClass().getSimpleName()
-                : exception.getMessage();
-    }
 }
-
-
-
-
-
-

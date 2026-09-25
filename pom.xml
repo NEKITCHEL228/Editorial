@@ -43,7 +43,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.6.3</version>
                 <configuration>
-                    <mainClass>presentation.ConsoleView</mainClass>
+                    <mainClass>application.Application</mainClass>
                 </configuration>
             </plugin>
         </plugins>
