@@ -273,7 +273,7 @@ public class ConsoleView implements View {
         while (true) {
             int num = 1;
             for (User.Role item : User.Role.values()){
-                System.out.println(String.format("%d. %s", num, item));
+                System.out.println(num + ". " + item);
                 num += 1;
             }
 
