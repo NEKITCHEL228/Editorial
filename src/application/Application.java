@@ -6,11 +6,15 @@ import data.local.database.DatabaseMigrator;
 import data.local.repository.JdbcArticleRepository;
 import domain.repository.ArticleRepository;
 import domain.usecase.AddArticleUseCase;
+import domain.usecase.AddUserUseCase;
 import domain.usecase.DeleteArticleUseCase;
+import domain.usecase.DeleteUserUseCase;
 import domain.usecase.EditArticleUseCase;
+import domain.usecase.EditUserUseCase;
 import domain.usecase.FilterArticlesUseCase;
 import domain.usecase.GetArticleByIdUseCase;
 import domain.usecase.GetArticlesUseCase;
+import domain.usecase.GetUserByIdUseCase;
 import domain.usecase.SearchArticleUseCase;
 import domain.usecase.SortArticlesUseCase;
 import presentation.ConsoleView;
@@ -33,7 +37,11 @@ public class Application {
                 new DeleteArticleUseCase(articleRepository),
                 new FilterArticlesUseCase(),
                 new SortArticlesUseCase(),
-                new SearchArticleUseCase()
+                new SearchArticleUseCase(),
+                new AddUserUseCase(),
+                new EditUserUseCase(),
+                new DeleteUserUseCase(),
+                new GetUserByIdUseCase()
         );
         view.setPresenter(presenter);
 

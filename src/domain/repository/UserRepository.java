@@ -9,5 +9,5 @@ public interface UserRepository {
 
     void deleteUser(int userId);
 
-    void getUserById(int userId);
+    User getUserById(int userId);
 }

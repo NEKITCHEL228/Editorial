@@ -1,6 +1,7 @@
 package presentation;
 
 import domain.model.Article;
+import domain.model.User;
 import domain.usecase.*;
 
 public class Presenter {
@@ -13,6 +14,10 @@ public class Presenter {
     private final EditArticleUseCase editArticleUseCase;
     private final SortArticlesUseCase sortArticlesUseCase;
     private final SearchArticleUseCase searchArticleUseCase;
+    private final AddUserUseCase addUserUseCase;
+    private final EditUserUseCase editUserUseCase;
+    private final DeleteUserUseCase deleteUserUseCase;
+    private final GetUserByIdUseCase getUserByIdUseCase;
 
 
     public Presenter(
@@ -24,7 +29,11 @@ public class Presenter {
             DeleteArticleUseCase deleteArticleUseCase,
             FilterArticlesUseCase filterArticlesUseCase,
             SortArticlesUseCase sortArticlesUseCase,
-            SearchArticleUseCase searchArticleUseCase
+            SearchArticleUseCase searchArticleUseCase,
+            AddUserUseCase addUserUseCase,
+            EditUserUseCase editUserUseCase,
+            DeleteUserUseCase deleteUserUseCase,
+            GetUserByIdUseCase getUserByIdUseCase
 
     ) {
         this.view = view;
@@ -36,6 +45,10 @@ public class Presenter {
         this.sortArticlesUseCase = sortArticlesUseCase;
         this.searchArticleUseCase = searchArticleUseCase;
         this.editArticleUseCase = editArticleUseCase;
+        this.addUserUseCase = addUserUseCase;
+        this.editUserUseCase = editUserUseCase;
+        this.deleteUserUseCase = deleteUserUseCase;
+        this.getUserByIdUseCase = getUserByIdUseCase;
     }
 
     public void onAddArticle(Article article) {
@@ -81,6 +94,19 @@ public class Presenter {
         } catch (IllegalStateException | IllegalArgumentException e) {
             view.showError(e.getMessage());
         }
+    }
+
+    public void onAddUser(User user) {
+    }
+
+    public void onEditUser(User user) {
+    }
+
+    public void onDeleteUser(int userId) {
+    }
+
+    public User onGetUserById(int userId) {
+        return null;
     }
 
 }
