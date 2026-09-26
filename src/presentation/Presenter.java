@@ -4,6 +4,9 @@ import domain.model.Article;
 import domain.model.User;
 import domain.usecase.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 // Класс Presenter ("мозги" UI): связывает View и UseCase-ы бизнес-логики
 public class Presenter {
     // Ссылка на интерфейс отображения (View)
@@ -24,6 +27,7 @@ public class Presenter {
     private final EditUserUseCase editUserUseCase;
     private final DeleteUserUseCase deleteUserUseCase;
     private final GetUserByIdUseCase getUserByIdUseCase;
+    private final GetUsersUseCase getUsersUseCase;
 
     // Конструктор класса: принимает View и все UseCase-ы
     public Presenter(
@@ -39,7 +43,8 @@ public class Presenter {
             AddUserUseCase addUserUseCase,
             EditUserUseCase editUserUseCase,
             DeleteUserUseCase deleteUserUseCase,
-            GetUserByIdUseCase getUserByIdUseCase
+            GetUserByIdUseCase getUserByIdUseCase,
+            GetUsersUseCase getUsersUseCase
 
     ) {
         this.view = view;
@@ -55,6 +60,7 @@ public class Presenter {
         this.editUserUseCase = editUserUseCase;
         this.deleteUserUseCase = deleteUserUseCase;
         this.getUserByIdUseCase = getUserByIdUseCase;
+        this.getUsersUseCase = getUsersUseCase;
     }
 
     // Обработка добавления статьи
@@ -70,7 +76,14 @@ public class Presenter {
     }
 
     // Обработка получения всех статей
-    public void onGetArticles() {
+    public List<Article> onGetArticles() {
+        List<Article> returnArticles = new ArrayList<Article>();
+        try {
+            returnArticles = getArticlesUseCase.execute();
+        } catch (IllegalStateException e) {
+            view.showError(e.getMessage());
+        }
+        return returnArticles;
     }
 
     // Обработка удаления статьи по id
@@ -164,4 +177,14 @@ public class Presenter {
 
         return returnUser; // Возвращаем пользователя
     }
+
+    public List<User> onGetUsers() {
+        try {
+            return getUsersUseCase.execute();
+        } catch (IllegalStateException e) {
+            view.showError(e.getMessage());
+            return List.of();
+        }
+    }
+
 }

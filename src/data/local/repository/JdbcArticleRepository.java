@@ -7,6 +7,7 @@ import domain.repository.ArticleRepository;
 
 import javax.xml.crypto.Data;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 // Класс для работы с БД в Java коде
@@ -64,14 +65,13 @@ public class JdbcArticleRepository implements ArticleRepository {
             // Задаем значения параметрам запроса
             statement.setInt(1, articleId);
 
-            // Получаем кол-во удаленных статей и выполняем запрос
             int affectedRows = statement.executeUpdate();
 
-            if (affectedRows == 0) throw new IllegalArgumentException("No article found"); // Если не удалось удалить статью возвращаем ошибку
+            if (affectedRows == 0) throw new IllegalArgumentException("No article found");
 
 
         } catch (SQLException e) {
-            throw new IllegalStateException("Couldn't delete article"); // Если возникла какая-нибудь ошибка при удалении статьи возвращаем ошибку
+            throw new IllegalStateException("Couldn't delete article");
         }
     }
 
@@ -160,7 +160,29 @@ public class JdbcArticleRepository implements ArticleRepository {
     // Метод для получения статей
     @Override
     public List<Article> getArticles() {
-        return List.of();
+        String sql = """
+                SELECT * FROM articles;
+                """;
+
+        try (var connection = connectionFactory.openConnection();
+             var statement = connection.prepareStatement(sql);
+        ) {
+
+            try (var resSet = statement.executeQuery()) {
+                List<Article> returnArticles = new ArrayList<Article>();
+
+                while (resSet.next()) {
+                    returnArticles.add(getArticleById(resSet.getInt("id")));
+                }
+
+                return returnArticles;
+            }
+
+        }
+        catch (SQLException e) {
+            throw new IllegalStateException("Couldn't get articles", e);
+        }
+
     }
 
     // Метод для поиска нескольких статей по чему-то

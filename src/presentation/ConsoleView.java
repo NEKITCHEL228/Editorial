@@ -25,6 +25,7 @@ public class ConsoleView implements View {
     private static final int EDIT_USER_COMMAND = 10;
     private static final int DELETE_USER_COMMAND = 11;
     private static final int GET_USER_BY_ID_COMMAND = 12;
+    private static final int SHOW_USERS_COMMAND = 13;
     private static final int EXIT_COMMAND = 0;
 
     // Внутренне хранилище статей?
@@ -65,6 +66,7 @@ public class ConsoleView implements View {
                     case EDIT_USER_COMMAND -> editUser();
                     case DELETE_USER_COMMAND -> deleteUser();
                     case GET_USER_BY_ID_COMMAND -> getUserById();
+                    case SHOW_USERS_COMMAND -> showUsers();
                     case EXIT_COMMAND -> {
                         showMessage("Exiting the application");
                         isRunning = false;
@@ -203,6 +205,7 @@ public class ConsoleView implements View {
         System.out.println("10. Edit user");
         System.out.println("11. Delete user");
         System.out.println("12. Get user by ID");
+        System.out.println("13. Show all users");
         System.out.println("0. Exit");
         System.out.println("-------------------------");
     }
@@ -210,13 +213,24 @@ public class ConsoleView implements View {
     // UI - вывод статей
     @Override
     public void showArticles() {
-        if (articles == null || articles.isEmpty()) {
-            showMessage("No articles found");
+        List<Article> showArticlesList = presenter.onGetArticles();
+
+        for (Article article : showArticlesList) {
+            showArticle(article);
+        }
+    }
+
+    @Override
+    public void showUsers() {
+        List<User> users = presenter.onGetUsers();
+
+        if (users.isEmpty()) {
+            showMessage("No users found");
             return;
         }
 
-        for (Article article : articles) {
-            showArticle(article);
+        for (User user : users) {
+            showUser(user);
         }
     }
 
