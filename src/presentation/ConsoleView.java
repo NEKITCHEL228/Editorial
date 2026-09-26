@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class ConsoleView implements View {
     private static final int SHOW_ARTICLES_COMMAND = 1;
@@ -108,7 +109,7 @@ public class ConsoleView implements View {
     }
 
     private void addArticle() {
-        int authorId = getPositiveIntInput("Enter author ID:", "Author ID");
+        int authorId = getValidatedIntInput("Enter author ID:", articleValidator::validateAuthorId);
         String title = getValidatedInput("Enter title:", articleValidator::validateTitle);
         String content = getValidatedInput("Enter content:", articleValidator::validateContent);
         String publishedAt = getUserInput("Enter published at (leave empty if unpublished):").trim();
@@ -247,10 +248,14 @@ public class ConsoleView implements View {
     }
 
     private int getPositiveIntInput(String prompt, String fieldName) {
+        return getValidatedIntInput(prompt, value -> idValidator.validate(value, fieldName));
+    }
+
+    private int getValidatedIntInput(String prompt, IntConsumer validator) {
         while (true) {
             int value = getIntInput(prompt);
             try {
-                idValidator.validate(value, fieldName);
+                validator.accept(value);
                 return value;
             } catch (IllegalArgumentException e) {
                 showError(e.getMessage());

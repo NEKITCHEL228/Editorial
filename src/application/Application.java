@@ -33,7 +33,7 @@ public class Application {
         ArticleRepository articleRepository = new JdbcArticleRepository(connectionFactory);
         UserRepository userRepository = new JdbcUserRepository(connectionFactory);
 
-        ArticleValidator articleValidator = new ArticleValidator();
+        ArticleValidator articleValidator = new ArticleValidator(userRepository);
         UserValidator userValidator = new UserValidator();
         IdValidator idValidator = new IdValidator();
 

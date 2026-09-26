@@ -10,4 +10,6 @@ public interface UserRepository {
     void deleteUser(int userId);
 
     User getUserById(int userId);
+
+    boolean existsById(int userId);
 }
