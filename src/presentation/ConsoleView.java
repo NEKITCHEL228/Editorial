@@ -2,9 +2,7 @@ package presentation;
 
 import domain.model.Article;
 import domain.model.User;
-import domain.validator.ArticleValidator;
-import domain.validator.IdValidator;
-import domain.validator.UserValidator;
+import presentation.validation.InputValidationService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,14 +30,10 @@ public class ConsoleView implements View {
 
     private Presenter presenter;
     private final Scanner scanner = new Scanner(System.in);
-    private final IdValidator idValidator;
-    private final ArticleValidator articleValidator;
-    private final UserValidator userValidator;
+    private final InputValidationService inputValidationService;
 
-    public ConsoleView(IdValidator idValidator, ArticleValidator articleValidator, UserValidator userValidator) {
-        this.idValidator = idValidator;
-        this.articleValidator = articleValidator;
-        this.userValidator = userValidator;
+    public ConsoleView(InputValidationService inputValidationService) {
+        this.inputValidationService = inputValidationService;
     }
 
     public void setPresenter(Presenter presenter) {
@@ -109,9 +103,9 @@ public class ConsoleView implements View {
     }
 
     private void addArticle() {
-        int authorId = getValidatedIntInput("Enter author ID:", articleValidator::validateAuthorId);
-        String title = getValidatedInput("Enter title:", articleValidator::validateTitle);
-        String content = getValidatedInput("Enter content:", articleValidator::validateContent);
+        int authorId = getValidatedIntInput("Enter author ID:", inputValidationService::validateAuthorId);
+        String title = getValidatedInput("Enter title:", inputValidationService::validateArticleTitle);
+        String content = getValidatedInput("Enter content:", inputValidationService::validateArticleContent);
         String publishedAt = getUserInput("Enter published at (leave empty if unpublished):").trim();
 
         if (publishedAt.isEmpty()) {
@@ -132,8 +126,8 @@ public class ConsoleView implements View {
 
     private void editArticle() {
         int articleId = getPositiveIntInput("Enter article ID:", "Article ID");
-        String title = getValidatedInput("Enter new title:", articleValidator::validateTitle);
-        String content = getValidatedInput("Enter new content:", articleValidator::validateContent);
+        String title = getValidatedInput("Enter new title:", inputValidationService::validateArticleTitle);
+        String content = getValidatedInput("Enter new content:", inputValidationService::validateArticleContent);
         Article.Status status = getStatusInput("Enter new status:");
 
         presenter.onEditArticle(articleId, title, content, status);
@@ -148,9 +142,9 @@ public class ConsoleView implements View {
     }
 
     private void addUser() {
-        String username = getValidatedInput("Enter username:", userValidator::validateUsername);
-        String email = getValidatedInput("Enter email:", userValidator::validateEmail);
-        String passwordHash = getValidatedInput("Enter password hash:", userValidator::validatePasswordHash);
+        String username = getValidatedInput("Enter username:", inputValidationService::validateUsername);
+        String email = getValidatedInput("Enter email:", inputValidationService::validateEmail);
+        String passwordHash = getValidatedInput("Enter password hash:", inputValidationService::validatePasswordHash);
         User.Role role = getRoleInput("Enter role:");
 
         User user = new User(0, username, email, passwordHash, role);
@@ -159,9 +153,9 @@ public class ConsoleView implements View {
 
     private void editUser() {
         int userId = getPositiveIntInput("Enter user ID:", "User ID");
-        String username = getValidatedInput("Enter new username:", userValidator::validateUsername);
-        String email = getValidatedInput("Enter new email:", userValidator::validateEmail);
-        String passwordHash = getValidatedInput("Enter new password hash:", userValidator::validatePasswordHash);
+        String username = getValidatedInput("Enter new username:", inputValidationService::validateUsername);
+        String email = getValidatedInput("Enter new email:", inputValidationService::validateEmail);
+        String passwordHash = getValidatedInput("Enter new password hash:", inputValidationService::validatePasswordHash);
         User.Role role = getRoleInput("Enter new role:");
 
         presenter.onEditUser(userId, username, email, passwordHash, role);
@@ -248,7 +242,7 @@ public class ConsoleView implements View {
     }
 
     private int getPositiveIntInput(String prompt, String fieldName) {
-        return getValidatedIntInput(prompt, value -> idValidator.validate(value, fieldName));
+        return getValidatedIntInput(prompt, value -> inputValidationService.validateId(value, fieldName));
     }
 
     private int getValidatedIntInput(String prompt, IntConsumer validator) {
