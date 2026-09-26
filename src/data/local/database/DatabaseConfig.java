@@ -8,6 +8,12 @@ import java.util.Properties;
 public class DatabaseConfig {
     private final Properties properties = new Properties();
 
+    public DatabaseConfig(String url, String user, String password) {
+        properties.setProperty("db.url", url);
+        properties.setProperty("db.user", user);
+        properties.setProperty("db.password", password);
+    }
+
     public DatabaseConfig() {
         try (var stream = DatabaseConfig.class.getResourceAsStream("/database.properties")) {
             if (stream == null) {
