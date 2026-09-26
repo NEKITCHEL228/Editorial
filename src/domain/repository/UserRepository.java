@@ -2,6 +2,7 @@ package domain.repository;
 
 import domain.model.User;
 
+// Интерфейс для пользователей
 public interface UserRepository {
     void addUser(User user);
 

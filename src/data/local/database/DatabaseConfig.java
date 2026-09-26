@@ -8,26 +8,32 @@ import java.util.Properties;
 public class DatabaseConfig {
     private final Properties properties = new Properties();
 
+    // Конструктор класса через заданные параметры в теле конструктора
     public DatabaseConfig(String url, String user, String password) {
         properties.setProperty("db.url", url);
         properties.setProperty("db.user", user);
         properties.setProperty("db.password", password);
     }
 
+    // Конструктор класса через конфиг database.properties
     public DatabaseConfig() {
+        // Пытаемся получить поток данных из database.properties
         try (var stream = DatabaseConfig.class.getResourceAsStream("/database.properties")) {
+            // Если ничего не получаем - возвращаем ошибку
             if (stream == null) {
                 throw new IllegalStateException("No database.properties file");
             }
 
+            // Пытаемся прочитать данные и занести их в properties
             try (var reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
                 properties.load(reader);
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Couldn't read database.properties", e);
+            throw new IllegalStateException("Couldn't read database.properties", e); // Возвращаем ошибку
         }
     }
 
+    // Геттеры
     public String getUrl() {
         return getRequired("db.url");
     }
@@ -40,6 +46,7 @@ public class DatabaseConfig {
         return getRequired("db.password");
     }
 
+    // Если в properties оказывается пустое значение программа возвращает ошибку
     private String getRequired(String key) {
         String value = properties.getProperty(key);
 
