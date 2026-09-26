@@ -85,6 +85,7 @@ jobs:
           IMAGE: ${{ env.IMAGE }}
         with:
           host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: IMAGE
