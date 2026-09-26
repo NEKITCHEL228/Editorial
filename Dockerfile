@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY target/*.jar app.jar
 
+COPY target/dependency/ libs/
+
 EXPOSE 6767
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-cp", "app.jar:libs/*", "application.Application"]
