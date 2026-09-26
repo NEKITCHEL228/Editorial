@@ -1,0 +1,111 @@
+package data.local.repository;
+
+import data.local.JdbcTestBase;
+import domain.model.Article;
+import domain.model.User;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class JdbcArticleRepositoryTest extends JdbcTestBase {
+    @Test
+    void addArticleAssignsIdAndGetArticleByIdReadsFields() {
+        User author = persistAuthor();
+        Article article = new Article(
+                0,
+                author.getId(),
+                "Draft title",
+                "Draft content",
+                Article.Status.PENDING,
+                null
+        );
+
+        articleRepository.addArticle(article);
+
+        assertTrue(article.getId() > 0);
+        Article stored = articleRepository.getArticleById(article.getId());
+        assertEquals(author.getId(), stored.getAuthorId());
+        assertEquals("Draft title", stored.getTitle());
+        assertEquals("Draft content", stored.getContent());
+        assertEquals(Article.Status.PENDING, stored.getStatus());
+    }
+
+    @Test
+    void addArticlePersistsPublicationDate() {
+        User author = persistAuthor();
+        Article article = new Article(
+                0,
+                author.getId(),
+                "Ready title",
+                "Ready content",
+                Article.Status.PUBLISHED,
+                "2026-09-26T12:00:00Z"
+        );
+
+        articleRepository.addArticle(article);
+
+        Article stored = articleRepository.getArticleById(article.getId());
+        assertEquals(Article.Status.PUBLISHED, stored.getStatus());
+        assertTrue(stored.getPublishedAt().contains("2026-09-26"));
+    }
+
+    @Test
+    void addArticleFailsWhenAuthorDoesNotExist() {
+        Article article = new Article(0, 99, "Title", "Content", Article.Status.PENDING, null);
+
+        assertThrows(IllegalStateException.class, () -> articleRepository.addArticle(article));
+    }
+
+    @Test
+    void editArticleUpdatesTitleContentAndStatus() {
+        User author = persistAuthor();
+        Article article = new Article(0, author.getId(), "Old title", "Old content", Article.Status.PENDING, null);
+        articleRepository.addArticle(article);
+
+        article.setTitle("New title");
+        article.setContent("New content");
+        article.setStatus(Article.Status.MODERATING);
+        articleRepository.editArticle(article);
+
+        Article stored = articleRepository.getArticleById(article.getId());
+        assertEquals("New title", stored.getTitle());
+        assertEquals("New content", stored.getContent());
+        assertEquals(Article.Status.MODERATING, stored.getStatus());
+    }
+
+    @Test
+    void editArticleThrowsWhenArticleDoesNotExist() {
+        Article missing = new Article(99, 1, "Title", "Content", Article.Status.PENDING, null);
+
+        assertThrows(IllegalArgumentException.class, () -> articleRepository.editArticle(missing));
+    }
+
+    @Test
+    void deleteArticleRemovesRow() {
+        User author = persistAuthor();
+        Article article = new Article(0, author.getId(), "Title", "Content", Article.Status.PENDING, null);
+        articleRepository.addArticle(article);
+
+        articleRepository.deleteArticle(article.getId());
+
+        assertThrows(IllegalArgumentException.class, () -> articleRepository.getArticleById(article.getId()));
+    }
+
+    @Test
+    void deleteArticleThrowsWhenArticleDoesNotExist() {
+        assertThrows(IllegalArgumentException.class, () -> articleRepository.deleteArticle(42));
+    }
+
+    @Test
+    void getArticleByIdThrowsWhenArticleDoesNotExist() {
+        assertThrows(IllegalArgumentException.class, () -> articleRepository.getArticleById(7));
+    }
+
+    private static User persistAuthor() {
+        User author = new User(0, "author", "author@example.com", "hash", User.Role.AUTHOR);
+        userRepository.addUser(author);
+        return author;
+    }
+}
