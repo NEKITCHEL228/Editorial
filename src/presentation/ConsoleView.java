@@ -2,11 +2,14 @@ package presentation;
 
 import domain.model.Article;
 import domain.model.User;
+import presentation.validation.InputValidationService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class ConsoleView implements View {
     private static final int SHOW_ARTICLES_COMMAND = 1;
@@ -27,6 +30,11 @@ public class ConsoleView implements View {
 
     private Presenter presenter;
     private final Scanner scanner = new Scanner(System.in);
+    private final InputValidationService inputValidationService;
+
+    public ConsoleView(InputValidationService inputValidationService) {
+        this.inputValidationService = inputValidationService;
+    }
 
     public void setPresenter(Presenter presenter) {
         this.presenter = presenter;
@@ -95,9 +103,9 @@ public class ConsoleView implements View {
     }
 
     private void addArticle() {
-        int authorId = getIntInput("Enter author ID:");
-        String title = getUserInput("Enter title:").trim();
-        String content = getUserInput("Enter content:").trim();
+        int authorId = getValidatedIntInput("Enter author ID:", inputValidationService::validateAuthorId);
+        String title = getValidatedInput("Enter title:", inputValidationService::validateArticleTitle);
+        String content = getValidatedInput("Enter content:", inputValidationService::validateArticleContent);
         String publishedAt = getUserInput("Enter published at (leave empty if unpublished):").trim();
 
         if (publishedAt.isEmpty()) {
@@ -111,22 +119,22 @@ public class ConsoleView implements View {
     }
 
     private void deleteArticle() {
-        int articleId = getIntInput("Enter article ID:");
+        int articleId = getPositiveIntInput("Enter article ID:", "Article ID");
 
         presenter.onDeleteArticle(articleId);
     }
 
     private void editArticle() {
-        int articleId = getIntInput("Enter article ID:");
-        String title = getUserInput("Enter new title:").trim();
-        String content = getUserInput("Enter new content:").trim();
+        int articleId = getPositiveIntInput("Enter article ID:", "Article ID");
+        String title = getValidatedInput("Enter new title:", inputValidationService::validateArticleTitle);
+        String content = getValidatedInput("Enter new content:", inputValidationService::validateArticleContent);
         Article.Status status = getStatusInput("Enter new status:");
 
         presenter.onEditArticle(articleId, title, content, status);
     }
 
     private void getArticleById() {
-        int articleId = getIntInput("Enter article ID to find:");
+        int articleId = getPositiveIntInput("Enter article ID to find:", "Article ID");
 
         Article article = presenter.onGetArticleById(articleId);
 
@@ -134,9 +142,9 @@ public class ConsoleView implements View {
     }
 
     private void addUser() {
-        String username = getUserInput("Enter username:").trim();
-        String email = getUserInput("Enter email:").trim();
-        String passwordHash = getUserInput("Enter password hash:").trim();
+        String username = getValidatedInput("Enter username:", inputValidationService::validateUsername);
+        String email = getValidatedInput("Enter email:", inputValidationService::validateEmail);
+        String passwordHash = getValidatedInput("Enter password hash:", inputValidationService::validatePasswordHash);
         User.Role role = getRoleInput("Enter role:");
 
         User user = new User(0, username, email, passwordHash, role);
@@ -144,23 +152,23 @@ public class ConsoleView implements View {
     }
 
     private void editUser() {
-        int userId = getIntInput("Enter user ID:");
-        String username = getUserInput("Enter new username:").trim();
-        String email = getUserInput("Enter new email:").trim();
-        String passwordHash = getUserInput("Enter new password hash:").trim();
+        int userId = getPositiveIntInput("Enter user ID:", "User ID");
+        String username = getValidatedInput("Enter new username:", inputValidationService::validateUsername);
+        String email = getValidatedInput("Enter new email:", inputValidationService::validateEmail);
+        String passwordHash = getValidatedInput("Enter new password hash:", inputValidationService::validatePasswordHash);
         User.Role role = getRoleInput("Enter new role:");
 
         presenter.onEditUser(userId, username, email, passwordHash, role);
     }
 
     private void deleteUser() {
-        int userId = getIntInput("Enter user ID:");
+        int userId = getPositiveIntInput("Enter user ID:", "User ID");
 
         presenter.onDeleteUser(userId);
     }
 
     private void getUserById() {
-        int userId = getIntInput("Enter user ID to find:");
+        int userId = getPositiveIntInput("Enter user ID to find:", "User ID");
         User user = presenter.onGetUserById(userId);
 
         showUser(user);
@@ -229,6 +237,34 @@ public class ConsoleView implements View {
                 return Integer.parseInt(input);
             } catch (NumberFormatException e) {
                 showError("Enter a valid number");
+            }
+        }
+    }
+
+    private int getPositiveIntInput(String prompt, String fieldName) {
+        return getValidatedIntInput(prompt, value -> inputValidationService.validateId(value, fieldName));
+    }
+
+    private int getValidatedIntInput(String prompt, IntConsumer validator) {
+        while (true) {
+            int value = getIntInput(prompt);
+            try {
+                validator.accept(value);
+                return value;
+            } catch (IllegalArgumentException e) {
+                showError(e.getMessage());
+            }
+        }
+    }
+
+    private String getValidatedInput(String prompt, Consumer<String> validator) {
+        while (true) {
+            String input = getUserInput(prompt).trim();
+            try {
+                validator.accept(input);
+                return input;
+            } catch (IllegalArgumentException e) {
+                showError(e.getMessage());
             }
         }
     }
