@@ -1,33 +1,69 @@
 package domain.validator;
 
 import domain.model.Article;
+import domain.repository.UserRepository;
 
 public class ArticleValidator {
+    private static final int TITLE_MIN_LENGTH = 3;
+    private static final int TITLE_MAX_LENGTH = 255;
+    private static final int CONTENT_MIN_LENGTH = 10;
+    private static final int CONTENT_MAX_LENGTH = 10000;
+
+    private final UserRepository userRepository;
+
+    public ArticleValidator(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     public void validate(Article article) {
         if (article == null) {
             throw new IllegalArgumentException("Article is required");
         }
-        if (article.getAuthorId() <= 0) {
-            throw new IllegalArgumentException("Author ID must be a positive number");
-        }
-        if (isBlank(article.getTitle())) {
-            throw new IllegalArgumentException("Title cannot be empty");
-        }
-        if (isBlank(article.getContent())) {
-            throw new IllegalArgumentException("Content cannot be empty");
-        }
-        if (article.getStatus() == null) {
-            throw new IllegalArgumentException("Status is required");
-        }
+        validateAuthorId(article.getAuthorId());
+        validateTitle(article.getTitle());
+        validateContent(article.getContent());
+        validateStatus(article.getStatus());
         if (article.getStatus() == Article.Status.PUBLISHED && isBlank(article.getPublishedAt())) {
             throw new IllegalArgumentException("Published article must have a publication date");
         }
     }
 
-    public void validateNew(Article article) {
-        validate(article);
-        if (article.getStatus() != Article.Status.PENDING) {
-            throw new IllegalStateException("New article must have a PENDING status");
+    public void validateAuthorId(int authorId) {
+        if (authorId <= 0) {
+            throw new IllegalArgumentException("Author ID must be a positive number");
+        }
+        if (!userRepository.existsById(authorId)) {
+            throw new IllegalArgumentException("Author with ID " + authorId + " does not exist");
+        }
+    }
+
+    public void validateTitle(String title) {
+        if (isBlank(title)) {
+            throw new IllegalArgumentException("Title cannot be empty");
+        }
+        if (title.length() < TITLE_MIN_LENGTH) {
+            throw new IllegalArgumentException("Title must be at least " + TITLE_MIN_LENGTH + " characters");
+        }
+        if (title.length() > TITLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Title must be at most " + TITLE_MAX_LENGTH + " characters");
+        }
+    }
+
+    public void validateContent(String content) {
+        if (isBlank(content)) {
+            throw new IllegalArgumentException("Content cannot be empty");
+        }
+        if (content.length() < CONTENT_MIN_LENGTH) {
+            throw new IllegalArgumentException("Content must be at least " + CONTENT_MIN_LENGTH + " characters");
+        }
+        if (content.length() > CONTENT_MAX_LENGTH) {
+            throw new IllegalArgumentException("Content must be at most " + CONTENT_MAX_LENGTH + " characters");
+        }
+    }
+
+    public void validateStatus(Article.Status status) {
+        if (status == null) {
+            throw new IllegalArgumentException("Status is required");
         }
     }
 

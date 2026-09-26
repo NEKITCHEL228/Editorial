@@ -12,29 +12,41 @@ public class UserValidator {
         if (user == null) {
             throw new IllegalArgumentException("User is required");
         }
-        if (isBlank(user.getUsername())) {
-            throw new IllegalArgumentException("Username cannot be empty");
-        }
-        if (user.getUsername().length() < USERNAME_MIN_LENGTH){
-            throw new IllegalArgumentException("Username must be at least " + USERNAME_MIN_LENGTH + " characters");
-        }
-        if (user.getUsername().length() > USERNAME_MAX_LENGTH) {
-            throw new IllegalArgumentException("Username must be at most " + USERNAME_MAX_LENGTH + " characters");
-        }
-        if (isBlank(user.getEmail())) {
-            throw new IllegalArgumentException("Email cannot be empty");
-        }
-        if (user.getEmail().length() > EMAIL_MAX_LENGTH) {
-            throw new IllegalArgumentException("Email must be at most " + EMAIL_MAX_LENGTH + " characters");
-        }
-        if (!user.getEmail().matches(EMAIL_PATTERN)) {
-            throw new IllegalArgumentException("Email is invalid");
-        }
-        if (isBlank(user.getPasswordHash())) {
-            throw new IllegalArgumentException("Password hash cannot be empty");
-        }
+        validateUsername(user.getUsername());
+        validateEmail(user.getEmail());
+        validatePasswordHash(user.getPasswordHash());
         if (user.getRole() == null) {
             throw new IllegalArgumentException("Role is required");
+        }
+    }
+
+    public void validateUsername(String username) {
+        if (isBlank(username)) {
+            throw new IllegalArgumentException("Username cannot be empty");
+        }
+        if (username.length() < USERNAME_MIN_LENGTH) {
+            throw new IllegalArgumentException("Username must be at least " + USERNAME_MIN_LENGTH + " characters");
+        }
+        if (username.length() > USERNAME_MAX_LENGTH) {
+            throw new IllegalArgumentException("Username must be at most " + USERNAME_MAX_LENGTH + " characters");
+        }
+    }
+
+    public void validateEmail(String email) {
+        if (isBlank(email)) {
+            throw new IllegalArgumentException("Email cannot be empty");
+        }
+        if (email.length() > EMAIL_MAX_LENGTH) {
+            throw new IllegalArgumentException("Email must be at most " + EMAIL_MAX_LENGTH + " characters");
+        }
+        if (!email.matches(EMAIL_PATTERN)) {
+            throw new IllegalArgumentException("Email is invalid");
+        }
+    }
+
+    public void validatePasswordHash(String passwordHash) {
+        if (isBlank(passwordHash)) {
+            throw new IllegalArgumentException("Password hash cannot be empty");
         }
     }
 

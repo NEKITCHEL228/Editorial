@@ -118,4 +118,26 @@ public class JdbcUserRepository implements UserRepository {
             throw new IllegalStateException("Couldn't get user", e);
         }
     }
+
+    @Override
+    public boolean existsById(int userId) {
+        String sql = """
+                SELECT 1
+                FROM users
+                WHERE id = ?
+                """;
+
+        try (
+                var connection = connectionFactory.openConnection();
+                var statement = connection.prepareStatement(sql)
+        ) {
+            statement.setInt(1, userId);
+
+            try (var result = statement.executeQuery()) {
+                return result.next();
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Couldn't check if user exists", e);
+        }
+    }
 }

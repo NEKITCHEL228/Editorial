@@ -24,6 +24,7 @@ import domain.validator.IdValidator;
 import domain.validator.UserValidator;
 import presentation.ConsoleView;
 import presentation.Presenter;
+import presentation.validation.InputValidationService;
 
 public class Application {
     public static void main(String[] args) {
@@ -33,11 +34,16 @@ public class Application {
         ArticleRepository articleRepository = new JdbcArticleRepository(connectionFactory);
         UserRepository userRepository = new JdbcUserRepository(connectionFactory);
 
-        ArticleValidator articleValidator = new ArticleValidator();
+        ArticleValidator articleValidator = new ArticleValidator(userRepository);
         UserValidator userValidator = new UserValidator();
         IdValidator idValidator = new IdValidator();
+        InputValidationService inputValidationService = new InputValidationService(
+                idValidator,
+                articleValidator,
+                userValidator
+        );
 
-        ConsoleView view = new ConsoleView();
+        ConsoleView view = new ConsoleView(inputValidationService);
         Presenter presenter = new Presenter(
                 view,
                 new GetArticlesUseCase(),
